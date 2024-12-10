@@ -1,0 +1,37 @@
+import streamlit as st
+import pandas as pd
+
+# טען את הנתונים
+file_path = "ספירת ביטחון דקל חדש.xlsx"  # החלף לשם הקובץ שלך
+data = pd.read_excel(file_path, sheet_name=0, header=2)
+
+# ניקוי בסיסי של נתונים
+data = data.dropna(how='all', axis=1)  # מחיקת עמודות ריקות
+data = data.dropna(how='all').reset_index(drop=True)  # מחיקת שורות ריקות
+
+# הוספת עמודה לחישוב חוסר/עודף
+if 'תקן כליאה' in data.columns and 'ספירה' in data.columns:
+    data['חוסר/עודף'] = data['ספירה'].fillna(0) - data['תקן כליאה'].fillna(0)
+
+# כותרת האפליקציה
+st.title("אפליקציית חישוב והצגת נתונים")
+
+# הצגת הטבלה המקורית
+st.subheader("נתונים מקוריים")
+st.dataframe(data)
+
+# הצגת חישובים
+if 'חוסר/עודף' in data.columns:
+    st.subheader("חישוב חוסר/עודף")
+    st.dataframe(data[['מס\' אגף', 'שם אגף', 'תקן כליאה', 'ספירה', 'חוסר/עודף']])
+
+    # סיכום כולל
+    st.write("### סיכומים")
+    st.write(f"סך הכל תקן כליאה: {data['תקן כליאה'].sum()}")
+    st.write(f"סך הכל ספירה: {data['ספירה'].sum()}")
+    st.write(f"סך הכל חוסר/עודף: {data['חוסר/עודף'].sum()}")
+
+# שמירת השינויים לקובץ חדש
+if st.button("שמור שינויים"):
+    data.to_excel("updated_ספירת ביטחון דקל חדש.xlsx", index=False)
+    st.success("הנתונים נשמרו בהצלחה לקובץ 'updated_ספירת ביטחון דקל חדש.xlsx'")
